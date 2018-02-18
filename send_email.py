@@ -9,9 +9,10 @@ import socket
 
 
 class SendEmail:
-    def __init__(self, conn_param):
+    def __init__(self, conn_param, use_TLS = True):
         """
             conn_param = [host, port, user, password] in that order. <list>
+            use_TLS = Boolean value indicating usage of TLS. <boolean>
         """
         if(not isinstance(conn_param, list)):
             return "Connection parameters are in invalid format."
@@ -20,8 +21,12 @@ class SendEmail:
         self.default_from_name = conn_param[2]
         
         try:
-            self.s = smtplib.SMTP(conn_param[0], conn_param[1])
-#             self.s.starttls()
+            if(use_TLS):
+                self.s = smtplib.SMTP(conn_param[0], conn_param[1])
+                self.s.starttls()
+            else:
+                self.s = smtplib.SMTP_SSL(conn_param[0], conn_param[1])
+                
             self.s.login(conn_param[2], conn_param[3])
             """This exception is raised for address-related errors, for getaddrinfo() and getnameinfo()."""
         except socket.gaierror as err: 
