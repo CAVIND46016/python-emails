@@ -123,7 +123,11 @@ class SendEmail:
                     print("Attachments are provided in invalid format.")
             
             # send the message via the server set up earlier.
-            self.s.send_message(msg)
+            try:
+                self.s.send_message(msg)
+            except smtplib.SMTPSenderRefused:
+                print("Your message exceeded allowed message size limits.\nMessage sending failed. Connection not found.");
+                return
             
             self.s.quit()
             
