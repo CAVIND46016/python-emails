@@ -21,7 +21,7 @@ class SendEmail:
         
         try:
             self.s = smtplib.SMTP(conn_param[0], conn_param[1])
-            self.s.starttls()
+#             self.s.starttls()
             self.s.login(conn_param[2], conn_param[3])
             """This exception is raised for address-related errors, for getaddrinfo() and getnameinfo()."""
         except socket.gaierror as err: 
@@ -32,6 +32,9 @@ class SendEmail:
             self.is_OK = False;
         except smtplib.SMTPAuthenticationError:
             print("The server didn't accept the username/password combination provided OR\naccount does not provide access to less secure apps.");
+            self.is_OK = False;
+        except smtplib.SMTPServerDisconnected: 
+            print("Connection closed unexpectedly.")
             self.is_OK = False;
             
     def parse_attachments(self, msg, attachments):
