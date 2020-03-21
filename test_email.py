@@ -1,15 +1,27 @@
-"""Connect to smtp.gmail.com on port 587 for TLS, 
-   port 465 for SSL)
-""" 
-from send_email import SendEmail
+"""
+Connect to smtp.gmail.com
+port 587 for TLS
+port 465 for SSL
+"""
 
-def main():           
+from send_email import Email
+
+
+def main():
     """
     Entry-point for the function.
     """
-    send_email = SendEmail(['smtp.gmail.com', 587, 'abc@gmail.com', 'abc123'])
-    send_email.send(to_address=['xyz@gmail.com'])
+
+    email_connection_params = {
+        "host": "smtp.gmail.com",
+        "port": 587,
+        "user": "sender@gmail.com",
+        "password": "xxxxxxx",
+        "use_tls": True
+    }
+    send_email = Email(**email_connection_params)
+    send_email.send(to_address=['receiver@abc.com'])
+
 
 if __name__ == "__main__":
     main()
-    
