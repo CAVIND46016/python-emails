@@ -54,7 +54,7 @@ class Email:
         Args:
         attachments <list/tuple>: a list of full file paths of respective attachments.
         """
-        if attachments and not isinstance(attachments, (list, tuple)):
+        if isinstance(attachments, (list, tuple)):
             raise ValueError("Attachments are provided in an invalid format.")
 
         parts = []
