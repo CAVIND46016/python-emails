@@ -20,7 +20,7 @@ from validate_email import validate_email
 logger = logging.getLogger(__name__)
 
 DEFAULT_EMAIL_CREDENTIALS = ast.literal_eval(
-    os.environ.get("DEFAULT_EMAIL_CREDENTIALS")
+    os.getenv("DEFAULT_EMAIL_CREDENTIALS")
 )
 
 
@@ -140,8 +140,10 @@ class Email:
         """
 
         def validate(emails_):
-            return emails_ and isinstance(
-                emails_, (list, tuple)
+            if emails_ is None:
+                return True
+            return isinstance(
+                emails_, (list, tuple, set)
             ) and all(validate_email(k) for k in emails_)
 
         if not validate(to_address) or not validate(cc_address) or not validate(bcc_address):
