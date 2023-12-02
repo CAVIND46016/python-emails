@@ -13,23 +13,22 @@ from email.mime.base import MIMEBase
 from email import encoders
 
 import smtplib
-from smtplib import SMTPNotSupportedError, SMTPAuthenticationError, \
-    SMTPServerDisconnected, SMTPSenderRefused, SMTPConnectError
+from smtplib import (
+    SMTPNotSupportedError,
+    SMTPAuthenticationError,
+    SMTPServerDisconnected,
+    SMTPSenderRefused,
+    SMTPConnectError,
+)
 from validate_email import validate_email
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_EMAIL_CREDENTIALS = ast.literal_eval(
-    os.getenv("DEFAULT_EMAIL_CREDENTIALS")
-)
+DEFAULT_EMAIL_CREDENTIALS = ast.literal_eval(os.getenv("DEFAULT_EMAIL_CREDENTIALS"))
 
 
 class Email:
-
-    def __init__(
-        self,
-        credentials=DEFAULT_EMAIL_CREDENTIALS
-    ):
+    def __init__(self, credentials=DEFAULT_EMAIL_CREDENTIALS):
         self.credentials = credentials
         self.smtp_conn = self.connect()
         self.msg = MIMEMultipart()
@@ -59,17 +58,14 @@ class Email:
                 self.credentials.get("port"),
             )
 
-            con.login(
-                self.credentials.get("user"),
-                self.credentials.get("password")
-            )
+            con.login(self.credentials.get("user"), self.credentials.get("password"))
         except (
             SMTPNotSupportedError,
             SMTPAuthenticationError,
             SMTPServerDisconnected,
-            SMTPConnectError
+            SMTPConnectError,
         ) as ex:
-            logger.error(f"<%s>: %s", type(ex).__name__, ex, exc_info=True)
+            logger.exception("<%s>: %s", type(ex).__name__, ex)
 
         return con
 
@@ -92,19 +88,13 @@ class Email:
                 part.set_payload(file.read())
             encoders.encode_base64(part)
             part.add_header(
-                "Content-Disposition",
-                f'attachment; filename="{os.path.basename(path)}"'
+                "Content-Disposition", f'attachment; filename="{os.path.basename(path)}"'
             )
             parts.append(part)
 
         return parts
 
-    def init_msg(
-        self,
-        subject,
-        body,
-        attachments=None
-    ):
+    def init_msg(self, subject, body, attachments=None):
         """
         Initialize the email message.
 
@@ -123,13 +113,7 @@ class Email:
         for part in attachment_parts:
             self.msg.attach(part)
 
-    def add_recipients(
-        self,
-        from_name,
-        to_address,
-        cc_address,
-        bcc_address
-    ):
+    def add_recipients(self, from_name, to_address, cc_address, bcc_address):
         """
         Add recipients to the email message.
 
@@ -142,16 +126,18 @@ class Email:
         def validate(emails_):
             if emails_ is None:
                 return True
-            return isinstance(
-                emails_, (list, tuple, set)
-            ) and all(validate_email(k) for k in emails_)
+            return isinstance(emails_, (list, tuple, set)) and all(
+                validate_email(k) for k in emails_
+            )
 
         if not validate(to_address) or not validate(cc_address) or not validate(bcc_address):
             raise ValueError("Email address is not in required format and/or is invalid.")
 
-        self.msg["From"] = formataddr(
-            (str(Header(from_name, "utf-8")),
-             self.credentials.get("user"))) if from_name else self.credentials.get("user")
+        self.msg["From"] = (
+            formataddr((str(Header(from_name, "utf-8")), self.credentials.get("user")))
+            if from_name
+            else self.credentials.get("user")
+        )
 
         self.msg["To"] = ", ".join(to_address) if to_address else None
         self.msg["Cc"] = ", ".join(cc_address) if cc_address else None
@@ -165,7 +151,7 @@ class Email:
         bcc_address=None,
         subject="",
         body="",
-        attachments=None
+        attachments=None,
     ):
         """
         Send an email.
@@ -179,21 +165,12 @@ class Email:
         :param attachments: List of file paths for attachments (optional).
         """
 
-        self.init_msg(
-            subject,
-            body,
-            attachments
-        )
-        self.add_recipients(
-            from_name,
-            to_address,
-            cc_address,
-            bcc_address
-        )
+        self.init_msg(subject, body, attachments)
+        self.add_recipients(from_name, to_address, cc_address, bcc_address)
 
         try:
             self.smtp_conn.send_message(self.msg)
         except SMTPSenderRefused as ex:
-            logger.error(f"<%s>: %s", type(ex).__name__, ex, exc_info=True)
+            logger.exception("<%s>: %s", type(ex).__name__, ex)
         finally:
             self.smtp_conn.quit()
